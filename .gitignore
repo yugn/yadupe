@@ -102,3 +102,13 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+tech-readme.txt
+*.jpg
+.vscode/
+
+test-data/A
+test-data/B
+test-data/C
+test-data/D
+test-data/res

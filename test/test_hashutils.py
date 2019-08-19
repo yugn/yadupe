@@ -5,7 +5,7 @@ from yadupe import hashutils
 
 NO_FILE = 'aaaaaaaa'
 SIMPLE_HASH_FILE = 'test-data/A/1.png'
-SIMPLE_HASH_VALUE = "SimpleKey(size=175132, lmtime='2019-08-08T10:00:21ZGMT')"
+SIMPLE_HASH_VALUE = "SimpleKey(size=175132)"
 SMALL_FILE = 'test-data/A/a/4.txt'
 SMALL_FILE_SIZE = 325
 SMALL_FILE_HASH = 'e6763eaf9633ef7d4e0e4f8206acabe846a71db1eaaa0a84b3b'\
@@ -26,7 +26,7 @@ def test_simplekey_value():
 
 def test_simplekey_creating():
     sk1 = hashutils.get_simple_key(os.path.abspath(SIMPLE_HASH_FILE))
-    sk2 = hashutils.SimpleKey.create(sk1.size, sk1.lmtime)
+    sk2 = hashutils.SimpleKey.create(sk1.size)
     assert sk1 == sk2
 
 

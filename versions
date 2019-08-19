@@ -1,0 +1,10 @@
+1.0.0 - initial release.
+        Features:
+        - Search for duplicates in list of directories
+        - Move duplicates into the given directory
+
+1.0.1 - Minor features and bug fixes:
+        - Duplicate search in folders on diffrent type fylesystem (extFAT, NTFS, ext4:
+          issue with diffrent file timestamp interpretation).
+        - Progress issue when no duplicates found.
+        - Added integration test case.

@@ -19,31 +19,26 @@ def main():
         exit()
 
     progress = None
-    max_progress = 0
     step = 0
 
     def progress_reset():
+        nonlocal progress
         if progress:
             progress.close()
 
     def progress_start(count: int, title: str):
+        nonlocal progress
+        nonlocal step
         progress_reset()
         print(title)
-        global progress
-        progress = tqdm.tqdm(total=100)
-        global max_progress
-        max_progress = 100
-        global step
-        step = 100 / count
+        progress = tqdm.tqdm(total=count)
+        nonlocal step
+        step = 1
 
     def on_item_progress():
-        global max_progress
-        global step
-        global progress
-        if max_progress < (1.9 * step):
-            step = max_progress
+        nonlocal step
+        nonlocal progress
         progress.update(step)
-        max_progress -= step
 
     def on_scan(count: int):
         progress_start(count, 'Search for duplicates:')

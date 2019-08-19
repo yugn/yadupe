@@ -32,9 +32,9 @@ CL_INCORRECT_1 = '-d -p test-data/A/1.png test-data/D '\
 
 ERROR_VALUE_1 = 'test-data/A/1.png: must be valid path to directory.'
 
-CL_INCORRECT_2 = '-d -p test-data/E -r test-data/res'
+CL_INCORRECT_2 = '-d -p test-data/Z -r test-data/res'
 
-ERROR_VALUE_2 = 'test-data/E: must be valid path to directory.'
+ERROR_VALUE_2 = 'test-data/Z: must be valid path to directory.'
 
 CL_INCORRECT_3 = '-d -p test-data/A test-data/B test-data/C test-data/D '\
     '-r test-data/A/2.txt'

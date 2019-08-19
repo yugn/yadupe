@@ -130,7 +130,7 @@ class _SimilarFiles(object):
         for key in self._pathes_.keys():
             if key == _STUB_KEY_STRING:
                 continue
-            if len(self._pathes_[key]) > 1:
+            if len(self._pathes_[key].path) > 1:
                 yield self._pathes_[key]
 
     def __eq__(self, other):
@@ -144,7 +144,7 @@ class _SimilarFiles(object):
 
 class FilepathDict(dict):
     """ Customized dictionary contains pairs {file-key : file-path-info}. 
-    file-key - simple file key (size + last modification time)
+    file-key - simple file key (size based)
     file-path-info - object with multiply appropriate file path
     """
 
@@ -158,13 +158,13 @@ class FilepathDict(dict):
             super().__getitem__(key).add(value)
 
     def _save_duplicates_(self, target, hooks=HookWrapper()):
-        if hooks.beforereporthook:
+        if hooks.beforereporthook and hooks.groups_count_cache > 0:
             hooks.beforereporthook(hooks.groups_count_cache)
         print('Duplicate list:', file=target)
         for sk in self.keys():
             for duplicates in self[sk].duplicates():
                 print(f'Filename: {duplicates.name}', file=target)
-                print(f'Size: {sk.size} byte, last modified: {sk.lmtime}',
+                print(f'Size: {sk.size} byte',
                       file=target)
                 for filepath in duplicates.path:
                     print(f'{filepath}', file=target)
@@ -216,7 +216,7 @@ def _move_duplicates(files_dict: dict,
 
     name_check_dict = {}
 
-    if hooks.beforemovehook:
+    if hooks.beforemovehook and hooks.groups_count_cache > 0:
         hooks.beforemovehook(hooks.groups_count_cache)
 
     for sk in files_dict.keys():
@@ -277,12 +277,14 @@ def deduplicate(settings: Settings, hooks=HookWrapper()):
             hooks.pathscannedhook()
 
     if hooks.beforereporthook or hooks.beforemovehook:
-        hooks.groups_count_cache = file_data_dict.duplicateslist_count()
+        dupl_count = file_data_dict.duplicateslist_count()
+        if dupl_count > 0:
+            hooks.groups_count_cache = dupl_count
 
     if not settings.op_dedup:
         # report result
         if settings.dest_path:
-            file_data_dict.save_duplicates(filepath=os.path.join(settings.dest_path,
+            file_data_dict.save_duplicates(filepath=os.path.join(os.path.abspath(settings.dest_path),
                                                                  'report.txt'),
                                            hooks=hooks)
         else:
@@ -303,5 +305,6 @@ def deduplicate(settings: Settings, hooks=HookWrapper()):
                 hooks.afterpurgedhook()
 
         # save report
-        file_data_dict.save_duplicates(filepath=os.path.join(settings.dest_path, 'report.txt'),
+        file_data_dict.save_duplicates(filepath=os.path.join(os.path.abspath(settings.dest_path),
+                                                             'report.txt'),
                                        hooks=hooks)

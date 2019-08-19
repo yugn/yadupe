@@ -1,7 +1,7 @@
 # yadupe
 
 __*yadupe*__ is yet another tool to find and remove duplicate files in a system.
-It will recursively read a source directories, looking for duplicate files. Two files considered as duplicates if they have same size, last modification time and content, though they could have different names.
+It will recursively read a source directories, looking for duplicate files. Two files considered as duplicates if they have same size and content, though they could have different names.
 
 In search mode utility report duplicate files list.
 
@@ -64,11 +64,11 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   -d, --deduplicate     Scan and remove mode. Duplicates will be moved into
-                        given " "directory.
+                        given directory.
   -p, --purge           Remove empty subdirs after duplicates move.
   -r PATH, --result PATH
                         Path to report dir (optional for default search mode)
-                        OR " "directory to move duplicated files into.
+                        OR directory to move duplicated files into.
 ```
 
 ## Testing

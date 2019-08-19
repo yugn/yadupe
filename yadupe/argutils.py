@@ -18,15 +18,15 @@ def parse_arguments(parameter_list: str = '') -> Settings:
                             help='Source path to search duplicated files.',
                             metavar='PATH')
     arg_parser.add_argument('-d', '--deduplicate',
-                            help='Scan and remove mode. Duplicates will be moved into given " \
-                                "directory.',
+                            help='Scan and remove mode. Duplicates will be moved into given \
+                                directory.',
                             action='store_true', dest='deduplicate')
     arg_parser.add_argument('-p', '--purge',
                             help='Remove empty subdirs after duplicates move.',
                             action='store_true', dest='rem_empty')
     arg_parser.add_argument('-r', '--result',
-                            help='Path to report dir (optional for default search mode) OR " \
-                                "directory to move duplicated files into.',
+                            help='Path to report dir (optional for default search mode) OR \
+                                directory to move duplicated files into.',
                             metavar='PATH')
     args = arg_parser.parse_args(
         parameter_list if len(parameter_list) else None)

@@ -58,7 +58,27 @@ def verify_settings(arguments: Settings) -> Settings:
                 raise ValueError(
                     f'{arguments.dest_path} must be valid path to file to create.')
 
+    isrelative = False
     for source in arguments.source:
         if not os.path.isdir(os.path.abspath(source)):
             raise ValueError(f'{source}: must be valid path to directory.')
-    return arguments
+        elif not os.path.isabs(source):
+            isrelative = True
+
+    if not os.path.isabs(arguments.dest_path):
+        isrelative = True
+
+    resargs = None
+    if isrelative:
+        sources = [src if os.path.isabs(src) else os.path.abspath(src)
+                   for src in arguments.source]
+        dest = os.path.abspath(arguments.dest_path)
+        resargs = Settings(arguments.op_dedup,
+                           dest,
+                           sources,
+                           arguments.remove_empty,
+                           arguments.op_test)
+    else:
+        resargs = arguments
+
+    return resargs

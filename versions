@@ -8,3 +8,5 @@
           issue with diffrent file timestamp interpretation).
         - Progress issue when no duplicates found.
         - Added integration test case.
+
+1.0.2 - Bug with relative path fixed.

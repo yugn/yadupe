@@ -1,5 +1,5 @@
 pytest==5.0.1
 pylint==2.3.1
 tqdm==4.33.0
-pip==19.2
+pip==21.1
 wheel==0.33.4

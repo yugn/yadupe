@@ -102,6 +102,7 @@ class _SimilarFiles(object):
     """ File path dictionary-based container, indexed by file content hash. 
     First added path stored w/o hashing.
     It will be hashed only on adding second path.
+    So finally each key contains pathes for binary identical files.
     """
 
     def __init__(self, first_path: str):

@@ -21,9 +21,10 @@ def parse_arguments(parameter_list: str = '') -> Settings:
                             help='Scan and remove mode. Duplicates will be moved into given \
                                 directory.',
                             action='store_true', dest='deduplicate')
-    # TODO add argument -u, --unique()
-    # Scan and remove mode. Unique files will be moved into given directory.
-    # TODO добавить верификацию аргумента
+    arg_parser.add_argument('-u', '--unique',
+                            help='Scan and move mode. Unique files will be moved into given \
+                                directory.',
+                            action='store_true', dest='unique')
     arg_parser.add_argument('-p', '--purge',
                             help='Remove empty subdirs after duplicates move.',
                             action='store_true', dest='rem_empty')
@@ -35,20 +36,26 @@ def parse_arguments(parameter_list: str = '') -> Settings:
         parameter_list if len(parameter_list) else None)
 
     return Settings(args.deduplicate,
+                    args.unique,
                     args.result,
                     args.source,
                     args.rem_empty,
                     False)
 
 
-def verify_settings(arguments: Settings) -> Settings:
+def verify_settings(arguments: Settings, make_abs_path: bool = True) -> Settings:
     """ Check parameters integrity. Load arguments from config file, if exist.
     Return valid argument set or raise exception.
     """
 
     if not arguments.dest_path is None:
         abspath = os.path.abspath(arguments.dest_path)
-    if arguments.op_dedup:
+
+    if arguments.op_dedup and arguments.op_unique:
+        raise  ValueError(
+                f'Select exactly one mode: remove duplicates or move unique files.')
+
+    if arguments.op_dedup or arguments.op_unique:
         # Arguments.dest_path must be directory path
         if arguments.dest_path is None or not os.path.isdir(abspath):
             raise ValueError(
@@ -68,15 +75,19 @@ def verify_settings(arguments: Settings) -> Settings:
         elif not os.path.isabs(source):
             isrelative = True
 
-    if not os.path.isabs(arguments.dest_path):
+    if arguments.dest_path and not os.path.isabs(arguments.dest_path):
         isrelative = True
 
     resargs = None
-    if isrelative:
+    if isrelative and make_abs_path:
         sources = [src if os.path.isabs(src) else os.path.abspath(src)
                    for src in arguments.source]
-        dest = os.path.abspath(arguments.dest_path)
+        if arguments.dest_path:
+            dest = os.path.abspath(arguments.dest_path)
+        else:
+            dest = None
         resargs = Settings(arguments.op_dedup,
+                           arguments.op_unique,
                            dest,
                            sources,
                            arguments.remove_empty,

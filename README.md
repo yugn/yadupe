@@ -73,7 +73,7 @@ optional arguments:
   -h, --help            show this help message and exit
   -d, --deduplicate     Scan and remove mode. Duplicates will be moved into
                         given directory.
-  -u, --unique          Scan and remove mode. Unique files will be moved into
+  -u, --unique          Scan and move mode. Unique files will be moved into
                         given directory.
   -p, --purge           Remove empty subdirs after duplicates or uniques move.
   -r PATH, --result PATH

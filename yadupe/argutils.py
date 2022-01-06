@@ -21,6 +21,9 @@ def parse_arguments(parameter_list: str = '') -> Settings:
                             help='Scan and remove mode. Duplicates will be moved into given \
                                 directory.',
                             action='store_true', dest='deduplicate')
+    # TODO add argument -u, --unique()
+    # Scan and remove mode. Unique files will be moved into given directory.
+    # TODO добавить верификацию аргумента
     arg_parser.add_argument('-p', '--purge',
                             help='Remove empty subdirs after duplicates move.',
                             action='store_true', dest='rem_empty')

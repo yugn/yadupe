@@ -175,3 +175,45 @@ def test_purgeempty():
 
     core._remove_empty_subdirs([path])
     assert not os.access(path, os.F_OK)
+
+
+def test_uniquemove():
+    # TODO переписать тест, пока это плейсхолдер - копипаста test_duplicatemove
+    settings = core.Settings(False,
+                            True,
+                            os.path.abspath(RESULT_DIR),
+                            [os.path.abspath(path) for path in [
+                                SOURCE_1, SOURCE_2, SOURCE_3, SOURCE_4]],
+                            False,
+                            True)
+    fd = core.FilepathDict()
+    for el in settings.source:
+        core._scan_duplicates(os.path.abspath(el), fd)
+    fd = core._move_duplicates(fd,
+                               settings.source,
+                               settings.dest_path,
+                               settings.op_test)
+    report_buffer = io.StringIO()
+    fd._save_duplicates_(target=report_buffer)
+    report = report_buffer.getvalue()
+    report_buffer.close()
+
+    fulltext_templates = [DUPLICATE_NAME_1, DUPLICATE_NAME_2, DUPLICATE_NAME_3,
+                          DUPLICATE_METADATA_1, DUPLICATE_METADATA_2, DUPLICATE_METADATA_3]
+    for template in fulltext_templates:
+        if template in report:
+            continue
+        else:
+            assert False, f'{template} not found.'
+
+    re_templates = [DUPLICATE_MOVE_TEMPLATE_1, DUPLICATE_MOVE_TEMPLATE_2,
+                    DUPLICATE_MOVE_TEMPLATE_3, DUPLICATE_MOVE_TEMPLATE_4,
+                    DUPLICATE_MOVE_TEMPLATE_5, DUPLICATE_MOVE_TEMPLATE_6,
+                    DUPLICATE_MOVE_TEMPLATE_7, DUPLICATE_MOVE_TEMPLATE_8,
+                    DUPLICATE_MOVE_TEMPLATE_9, DUPLICATE_MOVE_TEMPLATE_10,
+                    DUPLICATE_MOVE_TEMPLATE_11]
+    for template in re_templates:
+        if re.search(template, report):
+            continue
+        else:
+            assert False, f'{template} not found.'

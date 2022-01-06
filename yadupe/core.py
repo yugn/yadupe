@@ -26,9 +26,10 @@ _STUB_KEY_STRING = 'stub-key-string'
 
 class Settings(typing.NamedTuple):
     op_dedup: bool            # do deduplication
+    op_unique: bool           # unique elements move
     dest_path: str            # path to destination dir, or report file
     source: typing.List[str]  # path to scan
-    remove_empty: bool        # remove empty sub folders after deduplication
+    remove_empty: bool        # remove empty sub folders after deduplication (op_dedup == True only)
     op_test: bool             # test mode: only report, no real file moving
 
 
@@ -133,6 +134,14 @@ class _SimilarFiles(object):
                 continue
             if len(self._pathes_[key].path) > 1:
                 yield self._pathes_[key]
+
+    def uniques(self) -> typing.Iterator[NamedPath]:
+        """ Iterator, return one path for each unique hash value. """
+        for key in self._pathes_.keys():
+            if key == _STUB_KEY_STRING:
+                yield self._pathes_[key]
+            else:
+                yield self._pathes_[key].path[0]
 
     def __eq__(self, other):
         if not len(self._pathes_.keys()) == len(other._pathes_.keys()):
@@ -263,6 +272,60 @@ def _remove_empty_subdirs(root=typing.List[str]):
         for dirpath, dirnames, files in os.walk(dir):
             if not (files or dirnames):
                 os.removedirs(dirpath)
+
+
+def _move_uniques(files_dict: dict,
+                sources: typing.List[str],
+                dest: str,
+                testmode=False,
+                hooks=HookWrapper()):
+    """ Move uniques into new location, log operation."""
+
+    name_check_dict = {}
+
+    if hooks.beforemovehook and hooks.groups_count_cache > 0:
+        hooks.beforemovehook(hooks.groups_count_cache)
+
+    for sk in files_dict.keys():
+        
+        for unique in files_dict[sk].uniques():
+            print(f'Uniques len: {len(unique)}')
+            fullname = ''
+
+            if unique.name in name_check_dict.keys():
+                idx = name_check_dict[unique.name]
+                fullname = f'{unique.name}_{idx}'
+                name_check_dict[unique.name] += 1
+            else:
+                name_check_dict[unique.name] = 1
+                fullname = unique.name
+            fullname = os.path.join(dest, fullname)
+
+            # TODO добавить функциональность и тесты. Режим purge тоже должен поддерживаться.
+            #
+            print(f'Uniques: {unique}')
+            """
+            idx = 1
+            iters = iter(duplicates.path[1:])
+            for filepath in iters:
+                for src in sources:
+                    if src == os.path.commonpath([src, filepath]):
+                        destpath = os.path.relpath(filepath, src)
+                        destpath = os.path.join(shortname, destpath)
+                        if not testmode:
+                            os.makedirs(os.path.dirname(
+                                destpath), exist_ok=True)
+                        # log file move operation
+                        duplicates.path[idx] = f'{duplicates.path[idx]} -> {destpath}'
+                        idx += 1
+                        # move file
+                        if not testmode:
+                            os.replace(filepath, destpath)
+                        break
+            if hooks.groupmovedhook:
+                hooks.groupmovedhook()
+            """
+    return files_dict
 
 
 def deduplicate(settings: Settings, hooks=HookWrapper()):

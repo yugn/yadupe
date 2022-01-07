@@ -21,8 +21,6 @@ from itertools import count
 __all__ = ['Settings', 'NamedPath',
            'FilepathDict', 'HookWrapper', 'deduplicate']
 
-_STUB_KEY_STRING = 'stub-key-string'
-
 
 class Settings(typing.NamedTuple):
     op_dedup: bool            # do deduplication
@@ -98,6 +96,15 @@ class NamedPath(typing.NamedTuple):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    @property
+    def first_path(self):
+        return self.path[0]
+
+    @first_path.setter
+    def first_path(self, value):
+        self.path[0] = value
+    
+
 
 class _SimilarFiles(object):
     """ File path dictionary-based container, indexed by file content hash. 
@@ -106,9 +113,11 @@ class _SimilarFiles(object):
     So finally each key contains pathes for binary identical files.
     """
 
-    def __init__(self, first_path: str):
-        self._pathes_ = {_STUB_KEY_STRING: first_path}
-        self._length_ = 1
+    def __init__(self, value: str):
+        key = hash_file(value)
+        self._pathes_ = {}
+        self._pathes_[key] = NamedPath(os.path.basename(value), [value])
+
 
     def _add_(self, key: str, value: str):
         if key in self._pathes_.keys():
@@ -116,32 +125,24 @@ class _SimilarFiles(object):
         else:
             self._pathes_[key] = NamedPath(os.path.basename(value), [value])
 
-    def add(self, extra_path: str) -> None:
-        if self._length_ == 1:
-            first_path = self._pathes_.pop(_STUB_KEY_STRING)
-            new_key = hash_file(first_path)
-            self._add_(new_key, first_path)
-            self._length_ += 1
 
+    def add(self, extra_path: str) -> None:
         new_key = hash_file(extra_path)
         self._add_(new_key, extra_path)
+
 
     def duplicates(self) -> typing.Iterator[NamedPath]:
         """ Iterator, return each list of file path with equivalent hash values."""
 
         for key in self._pathes_.keys():
-            if key == _STUB_KEY_STRING:
-                continue
             if len(self._pathes_[key].path) > 1:
                 yield self._pathes_[key]
+
 
     def uniques(self) -> typing.Iterator[NamedPath]:
         """ Iterator, return one path for each unique hash value. """
         for key in self._pathes_.keys():
-            if key == _STUB_KEY_STRING:
-                yield self._pathes_[key]
-            else:
-                yield self._pathes_[key].path[0]
+            yield self._pathes_[key]
 
     def __eq__(self, other):
         if not len(self._pathes_.keys()) == len(other._pathes_.keys()):
@@ -190,6 +191,26 @@ class FilepathDict(dict):
         with open(filepath, 'wt') as fileout:
             self._save_duplicates_(target=fileout, hooks=hooks)
 
+    def _save_uniques_(self, target, hooks=HookWrapper()):
+        if hooks.beforereporthook and hooks.groups_count_cache > 0:
+            hooks.beforereporthook(hooks.groups_count_cache)
+        print('Unique list:', file=target)
+        for sk in self.keys():
+            for unique in self[sk].uniques():
+                print(f'Filename: {unique.name}', file=target)
+                print(f'Size: {sk.size} byte', file=target)
+                print(f'{unique.first_path}', file=target)
+                if hooks.groupreportedhook:
+                    hooks.groupreportedhook()
+        print('End of list.', file=target)
+
+    def print_uniques(self, hooks=HookWrapper()):
+        self._save_uniques_(target=sys.stdout, hooks=hooks)
+
+    def save_uniques(self, filepath: str, hooks=HookWrapper()):
+        with open(filepath, 'wt') as fileout:
+            self._save_uniques_(target=fileout, hooks=hooks)
+
     @staticmethod
     def _iter_len(it):
         """ Fast method to count iterable elements. """
@@ -203,6 +224,18 @@ class FilepathDict(dict):
         for sk in self.keys():
             total_cnt += FilepathDict._iter_len(self[sk].duplicates())
         return total_cnt
+
+    def uniqueslist_count(self):
+        """ Count number of unique files in files_dict """
+        total_cnt = 0
+        for sk in self.keys():
+            total_cnt += FilepathDict._iter_len(self[sk].uniques())
+        return total_cnt
+
+
+def _append_filename_id_(filename: str, id: int):
+    name, ext = os.path.splitext(filename)
+    return "{name}_{uid}{ext}".format(name=name, uid=id, ext=ext)
 
 
 def _scan_duplicates(rootpath: str, files_dict: dict):
@@ -234,7 +267,7 @@ def _move_duplicates(files_dict: dict,
 
             if duplicates.name in name_check_dict.keys():
                 idx = name_check_dict[duplicates.name]
-                shortname = f'{duplicates.name}_{idx}'
+                shortname = _append_filename_id_(duplicates.name, idx)
                 name_check_dict[duplicates.name] += 1
             else:
                 name_check_dict[duplicates.name] = 1
@@ -289,42 +322,25 @@ def _move_uniques(files_dict: dict,
     for sk in files_dict.keys():
         
         for unique in files_dict[sk].uniques():
-            print(f'Uniques len: {len(unique)}')
-            fullname = ''
 
             if unique.name in name_check_dict.keys():
                 idx = name_check_dict[unique.name]
-                fullname = f'{unique.name}_{idx}'
+                short_dest_name = _append_filename_id_(unique.name, idx)
                 name_check_dict[unique.name] += 1
             else:
                 name_check_dict[unique.name] = 1
-                fullname = unique.name
-            fullname = os.path.join(dest, fullname)
+                short_dest_name = unique.name
+            full_dest_name = os.path.join(dest, short_dest_name)
 
-            # TODO добавить функциональность и тесты. Режим purge тоже должен поддерживаться.
-            #
-            print(f'Uniques: {unique}')
-            """
-            idx = 1
-            iters = iter(duplicates.path[1:])
-            for filepath in iters:
-                for src in sources:
-                    if src == os.path.commonpath([src, filepath]):
-                        destpath = os.path.relpath(filepath, src)
-                        destpath = os.path.join(shortname, destpath)
-                        if not testmode:
-                            os.makedirs(os.path.dirname(
-                                destpath), exist_ok=True)
-                        # log file move operation
-                        duplicates.path[idx] = f'{duplicates.path[idx]} -> {destpath}'
-                        idx += 1
-                        # move file
-                        if not testmode:
-                            os.replace(filepath, destpath)
-                        break
+            if not testmode:
+                os.replace(unique.first_path, full_dest_name)
+
+            # log file move operation
+            unique.first_path = f'{unique.first_path} -> {full_dest_name}'
+
             if hooks.groupmovedhook:
                 hooks.groupmovedhook()
-            """
+
     return files_dict
 
 
@@ -341,24 +357,34 @@ def deduplicate(settings: Settings, hooks=HookWrapper()):
             hooks.pathscannedhook()
 
     if hooks.beforereporthook or hooks.beforemovehook:
-        dupl_count = file_data_dict.duplicateslist_count()
-        if dupl_count > 0:
-            hooks.groups_count_cache = dupl_count
+        total_count = 0
+        if settings.op_dedup:
+            file_data_dict.duplicateslist_count()
+        if settings.op_unique:
+            file_data_dict.uniqueslist_count()
+        if total_count > 0:
+            hooks.groups_count_cache = total_count
 
-    if not settings.op_dedup:
+    if not (settings.op_dedup or settings.op_unique):
         # report result
         if settings.dest_path:
             file_data_dict.save_duplicates(filepath=os.path.join(os.path.abspath(settings.dest_path),
-                                                                 'report.txt'),
-                                           hooks=hooks)
+                                                                 'report.txt'), hooks=hooks)
         else:
             file_data_dict.print_duplicates(hooks=hooks)
     else:
-        file_data_dict = _move_duplicates(file_data_dict,
-                                          settings.source,
-                                          settings.dest_path,
-                                          settings.op_test,
-                                          hooks=hooks)
+        if settings.op_dedup:
+            file_data_dict = _move_duplicates(file_data_dict,
+                                            settings.source,
+                                            settings.dest_path,
+                                            settings.op_test,
+                                            hooks=hooks)
+        if settings.op_unique:
+            file_data_dict = _move_uniques(file_data_dict,
+                                            settings.source,
+                                            settings.dest_path,
+                                            settings.op_test,
+                                            hooks=hooks)
 
         # clean up empty sub-dirs in source
         if settings.remove_empty and not settings.op_test:
@@ -369,6 +395,9 @@ def deduplicate(settings: Settings, hooks=HookWrapper()):
                 hooks.afterpurgedhook()
 
         # save report
-        file_data_dict.save_duplicates(filepath=os.path.join(os.path.abspath(settings.dest_path),
-                                                             'report.txt'),
-                                       hooks=hooks)
+        if settings.op_dedup:
+            file_data_dict.save_duplicates(filepath=os.path.join(os.path.abspath(settings.dest_path),
+                                                                'report.txt'), hooks=hooks)
+        if settings.op_unique:
+            file_data_dict.save_uniques(filepath=os.path.join(os.path.abspath(settings.dest_path),
+                                                                'report.txt'), hooks=hooks)

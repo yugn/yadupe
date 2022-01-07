@@ -8,7 +8,7 @@ with open(os.path.join(HERE, "README.md")) as fid:
 
 setup(
     name="yadupe",
-    version="1.0.2",
+    version="1.1.0",
     description="Recursively scan one or more given directories for duplicate files.",
     long_description=README,
     long_description_content_type="text/markdown",

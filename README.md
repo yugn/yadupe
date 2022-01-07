@@ -7,6 +7,8 @@ In search mode utility report duplicate files list.
 
 In deduplicate mode utility move duplicate files into the given destination directory. Only one file among group of duplicates is kept in the source directory. Also, report file contained all paths for moved diplicates will be saved in the destination directory.
 
+In the alternate mode utility move unique files into the given  destination. Only one file among group of duplicates is moved into destination directory.
+
 ## Prerequisites
 
 * [Python 3.4+](http://www.python.org/)
@@ -42,14 +44,20 @@ When yadupe installed it is availble on the CLI:
 % yadupe /home/user/source_a
 ```
 
-3. There are couple examples of using yadupe package in Python applications in the __*examples*__ directory.
+3. Search and move unique files in directories */home/user/source_a*, */home/user/source_b*. Found uniques will be moved into */home/user/uniques*, as well as report regarding moved files.
+
+```
+% yadupe /home/user/source_a /home/user/source_b -u -p -r /home/user/uniques
+```
+
+4. There are couple examples of using yadupe package in Python applications in the __*examples*__ directory.
 
 ## Options
 
 ```
 % yadupe -h
 
-usage: yadupe [-h] [-d] [-p] [-r PATH] PATH [PATH ...]
+usage: yadupe [-h] [-d] [-u] [-p] [-r PATH] PATH [PATH ...]
 
 Recursively scan one or more given directories for duplicate files. Found
 duplicates list could be saved into report or printed out in console. Also,
@@ -65,7 +73,9 @@ optional arguments:
   -h, --help            show this help message and exit
   -d, --deduplicate     Scan and remove mode. Duplicates will be moved into
                         given directory.
-  -p, --purge           Remove empty subdirs after duplicates move.
+  -u, --unique          Scan and move mode. Unique files will be moved into
+                        given directory.
+  -p, --purge           Remove empty subdirs after duplicates or uniques move.
   -r PATH, --result PATH
                         Path to report dir (optional for default search mode)
                         OR directory to move duplicated files into.

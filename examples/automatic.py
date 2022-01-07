@@ -14,7 +14,8 @@ PATH_TO_SEARCH_DUPLICATES = '.'
 
 if __name__ == "__main__":
     # Parameters setup
-    settings = core.Settings(False, 
+    settings = core.Settings(False,
+                            False,
                             '.',
                             [os.path.abspath(PATH_TO_SEARCH_DUPLICATES)],
                             False,

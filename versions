@@ -10,3 +10,6 @@
         - Added integration test case.
 
 1.0.2 - Bug with relative path fixed.
+
+1.1.0 - New mode added: move unique files from all sources into the given destination.
+        Bug fixes.

@@ -55,7 +55,17 @@ ERROR_VALUE_4 = 'test-data/ress: must be valid path to directory.'
 CL_INCORRECT_5 = '-d -u -p test-data/A test-data/B test-data/C test-data/D '\
     '-r test-data/res'
 
-ERROR_VALUE_5 = 'Select exactly one mode: remove duplicates or move unique files.'
+ERROR_VALUE_5 = 'Select exactly one mode: remove duplicates or move unique or add complement files.'
+
+CL_INCORRECT_6 = '-d -c -p test-data/A test-data/B test-data/C test-data/D '\
+    '-r test-data/res'
+
+ERROR_VALUE_6 = 'Select exactly one mode: remove duplicates or move unique or add complement files.'
+
+CL_INCORRECT_7 = '-c -p test-data/A -r test-data/res'
+
+ERROR_VALUE_7 = '[\'test-data/A\']: must contain at least 2 pathes for complement mode.'
+
 
 def test_empty():
     with pytest.raises(SystemExit):
@@ -71,8 +81,8 @@ def parse_and_validate(input: str):
 
 
 def test_incorrect_args():
-    for i, o in zip([CL_INCORRECT_1, CL_INCORRECT_2, CL_INCORRECT_3, CL_INCORRECT_4, CL_INCORRECT_5],
-                    [ERROR_VALUE_1, ERROR_VALUE_2, ERROR_VALUE_3, ERROR_VALUE_4, ERROR_VALUE_5]):
+    for i, o in zip([CL_INCORRECT_1, CL_INCORRECT_2, CL_INCORRECT_3, CL_INCORRECT_4, CL_INCORRECT_5, CL_INCORRECT_6, CL_INCORRECT_7],
+                    [ERROR_VALUE_1, ERROR_VALUE_2, ERROR_VALUE_3, ERROR_VALUE_4, ERROR_VALUE_5, ERROR_VALUE_6, ERROR_VALUE_7]):
         with pytest.raises(ValueError) as exinfo:
             parse_and_validate(i)
         assert str(exinfo.value) == o

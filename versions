@@ -13,3 +13,5 @@
 
 1.1.0 - New mode added: move unique files from all sources into the given destination.
         Bug fixes.
+
+1.2.0 - New mode added: move complement unique files from source into the given destination.

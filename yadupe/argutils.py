@@ -25,6 +25,10 @@ def parse_arguments(parameter_list: str = '') -> Settings:
                             help='Scan and move mode. Unique files will be moved into given \
                                 directory.',
                             action='store_true', dest='unique')
+    arg_parser.add_argument('-c', '--complement',
+                            help='Path to compare with source path to find \
+                                complement unique files.',
+                            action='store_true', dest='complement')
     arg_parser.add_argument('-p', '--purge',
                             help='Remove empty subdirs after duplicates move.',
                             action='store_true', dest='rem_empty')
@@ -37,6 +41,7 @@ def parse_arguments(parameter_list: str = '') -> Settings:
 
     return Settings(args.deduplicate,
                     args.unique,
+                    args.complement,
                     args.result,
                     args.source,
                     args.rem_empty,
@@ -51,15 +56,23 @@ def verify_settings(arguments: Settings, make_abs_path: bool = True) -> Settings
     if not arguments.dest_path is None:
         abspath = os.path.abspath(arguments.dest_path)
 
-    if arguments.op_dedup and arguments.op_unique:
-        raise  ValueError(
-                f'Select exactly one mode: remove duplicates or move unique files.')
+    if (arguments.op_dedup and arguments.op_unique and arguments.op_complement) or \
+       (arguments.op_dedup and arguments.op_unique) or \
+       (arguments.op_unique and arguments.op_complement) or \
+       (arguments.op_dedup and arguments.op_complement):
+        raise ValueError(
+            f'Select exactly one mode: remove duplicates or move unique or add complement files.')
 
-    if arguments.op_dedup or arguments.op_unique:
+    if arguments.op_dedup or arguments.op_unique or arguments.op_complement:
         # Arguments.dest_path must be directory path
         if arguments.dest_path is None or not os.path.isdir(abspath):
             raise ValueError(
                 f'{arguments.dest_path}: must be valid path to directory.')
+        
+        # Arguments.source should contains 2 or more pathes in op_complement mode
+        if arguments.op_complement and len(arguments.source) < 2:
+            raise ValueError(
+                f'{arguments.source}: must contain at least 2 pathes for complement mode.')
     else:
         if not arguments.dest_path is None:
             # Arguments.dest_path must be valid filepath for new file.

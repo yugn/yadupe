@@ -11,7 +11,7 @@ In the alternate mode utility move unique files into the given  destination. Onl
 
 ## Prerequisites
 
-* [Python 3.4+](http://www.python.org/)
+* [Python 3.8+](http://www.python.org/)
 
 * [tqdm](https://tqdm.github.io/)
 
@@ -50,14 +50,20 @@ When yadupe installed it is availble on the CLI:
 % yadupe /home/user/source_a /home/user/source_b -u -p -r /home/user/uniques
 ```
 
-4. There are couple examples of using yadupe package in Python applications in the __*examples*__ directory.
+4. Search directories */home/user/source_a*, */home/user/source_b*, */home/user/source_c* for unique files in */home/user/source_b* and , */home/user/source_c* that not found in */home/user/source_a*. Found uniques will be moved into */home/user/uniques*, as well as report regarding moved files.
+
+```
+% yadupe /home/user/source_a /home/user/source_b /home/user/source_c -c -p -r /home/user/uniques
+```
+
+5. There are couple examples of using yadupe package in Python applications in the __*examples*__ directory.
 
 ## Options
 
 ```
 % yadupe -h
 
-usage: yadupe [-h] [-d] [-u] [-p] [-r PATH] PATH [PATH ...]
+usage: yadupe [-h] PATH [PATH ...] [-d | -u | -c] [-p] [-r PATH]
 
 Recursively scan one or more given directories for duplicate files. Found
 duplicates list could be saved into report or printed out in console. Also,
@@ -70,15 +76,17 @@ positional arguments:
   PATH                  Source path to search duplicated files.
 
 optional arguments:
-  -h, --help            show this help message and exit
-  -d, --deduplicate     Scan and remove mode. Duplicates will be moved into
-                        given directory.
-  -u, --unique          Scan and move mode. Unique files will be moved into
-                        given directory.
-  -p, --purge           Remove empty subdirs after duplicates or uniques move.
+  -h, --help              Show this help message and exit.
+  -d, --deduplicate       Scan and remove mode. Duplicates will be moved into
+                          given directory.
+  -u, --unique            Scan and move mode. Unique files will be moved into
+                          given directory.
+  -c, --complement        Scan and complement  mode. Unique files found in PATH 
+                          will be moved into given directory.
+  -p, --purge             Remove empty subdirs after duplicates or uniques move.
   -r PATH, --result PATH
-                        Path to report dir (optional for default search mode)
-                        OR directory to move duplicated files into.
+                          Path to report dir (optional for default search mode)
+                          OR directory to move duplicated files into.
 ```
 
 ## Testing

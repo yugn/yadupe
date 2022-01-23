@@ -25,6 +25,7 @@ __all__ = ['Settings', 'NamedPath',
 class Settings(typing.NamedTuple):
     op_dedup: bool            # do deduplication
     op_unique: bool           # unique elements move
+    op_complement: bool       # complenet source with unique elements
     dest_path: str            # path to destination dir, or report file
     source: typing.List[str]  # path to scan
     remove_empty: bool        # remove empty sub folders after deduplication (op_dedup == True only)
@@ -343,7 +344,18 @@ def _move_uniques(files_dict: dict,
 
     return files_dict
 
+"""
+TODO 
+сделать класс - интерфейс и иерархию классов, которые в зависимости от настроек settings будут разбираться со:
+- сканированием одного или нескольких каталогов
+- построением FilepathDict
+- дополнением FilepathDict (для complement)
+- подсчетом количества элементов для tqdm
+- выполнением операции определенной в настройках
+- созданием отчета об операции
 
+Переделать тесты модулей core
+"""
 def deduplicate(settings: Settings, hooks=HookWrapper()):
     file_data_dict = FilepathDict()
 
@@ -359,9 +371,9 @@ def deduplicate(settings: Settings, hooks=HookWrapper()):
     if hooks.beforereporthook or hooks.beforemovehook:
         total_count = 0
         if settings.op_dedup:
-            file_data_dict.duplicateslist_count()
+            total_count = file_data_dict.duplicateslist_count()
         if settings.op_unique:
-            file_data_dict.uniqueslist_count()
+            total_count = file_data_dict.uniqueslist_count()
         if total_count > 0:
             hooks.groups_count_cache = total_count
 

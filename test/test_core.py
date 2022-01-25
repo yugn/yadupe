@@ -3,7 +3,7 @@ import os
 import io
 import re
 import pytest
-from yadupe import core
+from yadupe import core, utils
 
 FILEPATH_1 = 'test-data/A/2.txt'
 FILEPATH_1EQ = 'test-data/A/3.txt'
@@ -69,27 +69,27 @@ UNIQUE_MOVE_TEMPLATE = r'(A/1.png)(?:.|\s)*?(A/3.txt)(?:.|\s)*?(A/a/b/8.txt)(?:.
 
 @pytest.fixture
 def namedpath_1():
-    return core.NamedPath('keystring1', ['first_path', 'second_path', 'third_path'])
+    return utils.NamedPath('keystring1', ['first_path', 'second_path', 'third_path'])
 
 
 @pytest.fixture
 def namedpath_1eq():
-    return core.NamedPath('keystring1', ['first_path', 'second_path', 'third_path'])
+    return utils.NamedPath('keystring1', ['first_path', 'second_path', 'third_path'])
 
 
 @pytest.fixture
 def namedpath_2():
-    return core.NamedPath('keystring2', ['first_path', 'second_path', 'third_path'])
+    return utils.NamedPath('keystring2', ['first_path', 'second_path', 'third_path'])
 
 
 @pytest.fixture
 def namedpath_3():
-    return core.NamedPath('keystring1', ['first_path', 'second_path', ])
+    return utils.NamedPath('keystring1', ['first_path', 'second_path', ])
 
 
 @pytest.fixture
 def namedpath_4():
-    return core.NamedPath('keystring1', ['first_path', 'second_path', 'another_third_path'])
+    return utils.NamedPath('keystring1', ['first_path', 'second_path', 'another_third_path'])
 
 
 def test_namedpath_eq(namedpath_1,
@@ -105,8 +105,8 @@ def test_namedpath_eq(namedpath_1,
 
 
 def test_similarfiles_eq():
-    simfile_1 = core._SimilarFiles(FILEPATH_1)
-    simfile_2 = core._SimilarFiles(FILEPATH_1)
+    simfile_1 = utils._SimilarFiles(FILEPATH_1)
+    simfile_2 = utils._SimilarFiles(FILEPATH_1)
 
     assert simfile_1 == simfile_2
 
@@ -120,12 +120,12 @@ def test_similarfiles_eq():
 
 
 def test_filedict_eq():
-    fd1 = core.FilepathDict()
+    fd1 = utils.FilepathDict()
     core._scan_duplicates(SOURCE_1, fd1)
-    fd2 = core.FilepathDict()
+    fd2 = utils.FilepathDict()
     core._scan_duplicates(SOURCE_1, fd2)
     assert fd1 == fd2
-    fd3 = core.FilepathDict()
+    fd3 = utils.FilepathDict()
     core._scan_duplicates(SOURCE_2, fd3)
     assert fd1 != fd3
 
@@ -138,7 +138,7 @@ def test_filedict_eq():
 
 
 def test_print_duplicates(capfd):
-    fd1 = core.FilepathDict()
+    fd1 = utils.FilepathDict()
     core._scan_duplicates(SOURCE_1, fd1)
     fd1.print_duplicates()
     out = [line for line in capfd.readouterr()[0].split('\n') if line.strip()]
@@ -152,7 +152,7 @@ def test_print_duplicates(capfd):
 
 
 def test_print_uniques(capfd):
-    fd1 = core.FilepathDict()
+    fd1 = utils.FilepathDict()
     core._scan_duplicates(SOURCE_1, fd1)
     fd1.print_uniques()
     out = [line for line in capfd.readouterr()[0].split('\n') if line.strip()]
@@ -167,13 +167,13 @@ def test_print_uniques(capfd):
 
 
 def test_duplucates_enamerator():
-    settings = core.Settings(True,
+    settings = utils.Settings(True,
                             False,
                             os.path.abspath(RESULT_DIR),
                             [os.path.abspath(path) for path in [SOURCE_1]],
                             False,
                             True)
-    fd = core.FilepathDict()
+    fd = utils.FilepathDict()
     for el in settings.source:
         core._scan_duplicates(os.path.abspath(el), fd)
 
@@ -194,13 +194,13 @@ def test_duplucates_enamerator():
 
 
 def test_unique_enamerator():
-    settings = core.Settings(False,
+    settings = utils.Settings(False,
                             True,
                             os.path.abspath(RESULT_DIR),
                             [os.path.abspath(path) for path in [SOURCE_1]],
                             False,
                             True)
-    fd = core.FilepathDict()
+    fd = utils.FilepathDict()
     for el in settings.source:
         core._scan_duplicates(os.path.abspath(el), fd)
 
@@ -220,14 +220,14 @@ def test_unique_enamerator():
 
 
 def test_duplicatemove():
-    settings = core.Settings(True,
+    settings = utils.Settings(True,
                              False,
                              os.path.abspath(RESULT_DIR),
                              [os.path.abspath(path) for path in [
                                  SOURCE_1, SOURCE_2, SOURCE_3, SOURCE_4]],
                              False,
                              True)
-    fd = core.FilepathDict()
+    fd = utils.FilepathDict()
     for el in settings.source:
         core._scan_duplicates(os.path.abspath(el), fd)
     fd = core._move_duplicates(fd,
@@ -270,17 +270,17 @@ def test_purgeempty():
 
 
 def test_uniquemove():
-    settings = core.Settings(False,
+    settings = utils.Settings(False,
                             True,
                             os.path.abspath(RESULT_DIR),
                             [os.path.abspath(path) for path in [
                                 SOURCE_1]],
                             False,
                             True)
-    fd = core.FilepathDict()
+    fd = utils.FilepathDict()
     for el in settings.source:
         core._scan_duplicates(os.path.abspath(el), fd)
-    fd = core._move_uniques(fd,
+    fd = utils._move_uniques(fd,
                             settings.source,
                             settings.dest_path,
                             settings.op_test)

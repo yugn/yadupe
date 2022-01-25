@@ -2,7 +2,7 @@ import sys
 import os
 import re
 import pytest
-from yadupe import core
+from yadupe import core, utils
 
 SOURCE_1 = 'test-data/A'
 SOURCE_2 = 'test-data/B'
@@ -57,7 +57,7 @@ FAKE_UNIQUE_NAMES = ['Filename: 9.txt','Filename: 42.txt','Filename: 10.txt']
 
 
 def test_duplicatemove():
-    settings = core.Settings(True,
+    settings = utils.Settings(True,
                             False,
                              os.path.abspath(RESULT_DIR),
                              [os.path.abspath(path) for path in [
@@ -101,7 +101,7 @@ def test_duplicatemove():
 
 
 def test_uniquemove():
-    settings = core.Settings(False,
+    settings = utils.Settings(False,
                             True,
                              os.path.abspath(RESULT_DIR),
                              [os.path.abspath(path) for path in [
